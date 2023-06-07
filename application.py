@@ -7,6 +7,7 @@ import random
 import os
 from dotenv import load_dotenv
 from validate_email import validate_email_or_fail
+from collections import defaultdict
 
 application = Flask(__name__)
 cors = CORS(application)
@@ -66,7 +67,8 @@ def sourcePerson():
     ]
     TLDs = [".com", ".org", ".edu"]
 
-    results= []
+    results = []
+    redundancy = defaultdict(list)
 
     for email in emails:
         for tld in TLDs:
@@ -81,15 +83,21 @@ def sourcePerson():
                     dns_timeout=10,
                     check_smtp=True,
                     smtp_timeout=10,
-                    smtp_skip_tls=True,
+                    smtp_helo_host='my.host.name',
+                    smtp_from_address='my@from.addr.ess',
+                    smtp_skip_tls=False,
                     smtp_tls_context=None,
                     smtp_debug=False,
-                    )
+                )
                 if is_valid:
                     results.append(address)
+                    redundancy[tld].append(address)
                     print("Passed!")
             except:
                 continue
+
+    for tld in redundancy:
+        if len(redundancy[tld]) == 1: results = redundancy[tld]
 
     return json.dumps(results)
 
