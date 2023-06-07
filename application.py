@@ -5,6 +5,7 @@ import json
 import openai
 import random
 import os
+import sys
 from dotenv import load_dotenv
 from validate_email import validate_email_or_fail
 from collections import defaultdict
@@ -55,15 +56,16 @@ def sourcePerson():
     domain = "@" + target["domain"].lower()
 
     emails = [
-        first + last[0] + domain,
-        first[0] + last + domain,
-        last + first[0] + domain,
-        first + last + domain,
-        last + "." + first + domain,
-        first + "." + last + domain,
-        first + "_" + last + domain,
-        first + domain,
-        last + domain,
+        first + last[0] + domain,       # bradleyt
+        first[0] + last + domain,       # btian
+        last + first[0] + domain,       # tianb
+        first + last + domain,          # bradleytian
+        last + "." + first + domain,    # tian.bradley
+        first + "." + last + domain,    # bradley.tian
+        first + "_" + last + domain,    # bradley_tian
+        first + domain,                 # bradley
+        last + domain,                  # tian
+        
     ]
     TLDs = [".com", ".org", ".edu"]
 
@@ -96,8 +98,13 @@ def sourcePerson():
             except:
                 continue
 
+    lowest = sys.maxsize
     for tld in redundancy:
-        if len(redundancy[tld]) == 1: results = redundancy[tld]
+        if len(redundancy[tld]) < lowest:
+            results = redundancy[tld]
+            lowest = len(redundancy[tld])
+        elif len(redundancy[tld]) == lowest:
+            results.extend(redundancy[tld])
 
     return json.dumps(results)
 
